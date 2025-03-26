@@ -30,33 +30,6 @@ class Navigation(StatesGroup):
     data_object = State()
     data_object = State()
 
-# --------------------- ТЕСТ -----------------------
-
-class Dialog:
-    def __init__(self):
-        pass
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
@@ -101,126 +74,57 @@ async def reg_contact(message: Message, state: FSMContext):
 async def menu(message: Message, state: FSMContext):
     await message.answer("Выберите действие:", reply_markup=kb.menu)
 
-    data = await state.get_data()
-    history = data.get("history", [])
-
-    # Удаляем предыдущее сообщение
-    await message.delete()
-
-    await state.set_state(Navigation.history)
-    await state.update_data({
-        "previous_function": "menu",
-        "object": message,
-        "state": state
-    })
 
 
 # ----------кнопка ПОСМОТРЕТЬ ЦЕНЫ -----------
 @router.callback_query(F.data == 'view_prices')
 async def view_prices(callback: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-    history = data.get("history", [])
-
     await callback.message.delete()
 
     photo_path = os.path.join('app', 'media', 'img', 'price.jpg')
     await callback.message.answer_photo(photo=FSInputFile(photo_path), caption="Прайс-лист", reply_markup=kb.back)
 
-    history.append({
-        "previous_function": "view_prices",
-        "object": callback,
-        "state": state
-    })
-    await state.update_data(history=history)
+
     
 
 
 # --------кнопка ЗАПИСАТЬСЯ НА УСЛУГУ ---------
 @router.callback_query(F.data == 'book_service')
 async def get_master(callback: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-    history = data.get("history", [])
-
-    await callback.message.delete()
 
     await state.set_state(Appointment.master)
     await callback.message.answer('Выберите мастера', reply_markup=await kb.masters())
-    history.append({
-        "previous_function": "get_master",
-        "object": callback,
-        "state": state
-    })
-    await state.update_data(history=history)
+
  
 
 
 # --------кнопка ВЫбора КАТЕГОРИИ ---------
 @router.callback_query(F.data.startswith('master_'), Appointment.master)
 async def get_category(callback: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-    history = data.get("history", [])
-    try:
-        await callback.message.delete()
-    except Exception as e:
-        print(e)
         
-
     await callback.answer('Мастер выбран.')
     await state.update_data(master=callback.data.split('_')[1])
     await state.set_state(Appointment.category)
     await callback.message.answer('Выберите категорию', reply_markup=await kb.categories())
 
-    history.append({
-        "previous_function": "get_category",
-        "object": callback,
-        "state": state
-    })
-    await state.update_data(history=history)
-
 
 # --------кнопка ВЫбОРА УСЛУГИ ---------
 @router.callback_query(F.data.startswith('category_'), Appointment.category)
 async def get_service(callback: CallbackQuery, state: FSMContext):
-    await state.update_data(previous_function="get_service", data_object=callback, data_state=state)
+    
     await callback.answer('Категория выбрана.')
     await state.update_data(category=callback.data.split('_')[1])
     await state.set_state(Appointment.service)
     await callback.message.answer('Выберите услугу', reply_markup=await kb.services(callback.data.split('_')[1]))
-    await callback.message.delete()
+   
 
 
 @router.callback_query(F.data.startswith('service_'), Appointment.service)
 async def get_service_finish(callback: CallbackQuery, state: FSMContext):
-    await state.update_data(previous_function="get_service_finish", data_object=callback, data_state=state)
+   
     await callback.answer('Услуга выбрана.')
     data = await state.get_data()
     await set_appointment(callback.from_user.id, data['master'], callback.data.split('_')[1])
     await callback.message.answer('Вы успешно записаны!.', reply_markup=kb.main)
-    await callback.message.delete()
+ 
 
-
-
-# -------------- кнопка НАЗАД ----------------
-@router.callback_query(F.data == 'back')
-async def go_back(callback: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-    history = data.get("history", [])
-
-
-    if history:
-        history.pop()
-        await state.update_data(history=history)  # Обновляем state
-        
-        if history:  # Проверяем, есть ли ещё шаги в истории
-            data = history[-1]
-            func = globals().get(data['previous_function'])
-
-            if func:
-                try:
-                    await func(data['object'], data['state'])  # Передаём актуальный state
-                except Exception as e:
-                    print(f"Ошибка при вызове {data['previous_function']}: {e}")
-            else:
-                print(f"Функция {data['previous_function']} не найдена")
-        else:
-            print("История пуста, возвращаться некуда")
