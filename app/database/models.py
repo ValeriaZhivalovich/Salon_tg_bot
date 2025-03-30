@@ -34,8 +34,8 @@ class Master(Base):
     name: Mapped[str] = mapped_column(String(20))
 
 
-class Service_section(Base):
-    __tablename__ = 'service_sections'
+class Category(Base):
+    __tablename__ = 'categories'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(20))
@@ -46,7 +46,7 @@ class Service(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(20))
     prise: Mapped[str] = mapped_column(String(10))
-    section: Mapped[int] = mapped_column(ForeignKey('service_sections.id'))
+    category: Mapped[int] = mapped_column(ForeignKey('categories.id'))
 
 
 class Appointment(Base):
@@ -54,8 +54,8 @@ class Appointment(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user: Mapped[int] = mapped_column(ForeignKey('users.id'))
-    barber: Mapped[int] = mapped_column(ForeignKey('masters.id'))
-    section: Mapped[int] = mapped_column(ForeignKey('service_sections.id'))
+    master: Mapped[int] = mapped_column(ForeignKey('masters.id'))
+    category: Mapped[int] = mapped_column(ForeignKey('categories.id'))
     service: Mapped[int] = mapped_column(ForeignKey('services.id'))
 
 

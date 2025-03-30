@@ -1,5 +1,5 @@
 from app.database.models import async_session
-from app.database.models import User, Master, Service, Appointment, Service_section
+from app.database.models import User, Master, Service, Appointment, Category
 from sqlalchemy import select, update
 
 
@@ -33,15 +33,15 @@ async def get_masters(session):
 
 @connection
 async def get_categories(session):
-    return await session.scalars(select(Service_section))
+    return await session.scalars(select(Category))
 
 @connection
 async def get_services(session, category):
-    return await session.scalars(select(Service).where(Service.section == category))
+    return await session.scalars(select(Service).where(Service.category == category))
 
 
 @connection
-async def set_appointment(session, tg_id, master, service):
+async def set_appointment(session, tg_id, master, category, service):
     user = await session.scalar(select(User).where(User.tg_id == tg_id))
-    session.add(Appointment(user=user.id, service=service, master=master))
+    session.add(Appointment(user=user.id, service=service, category=category, master=master))
     await session.commit()
