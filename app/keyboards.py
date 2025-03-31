@@ -10,6 +10,10 @@ main = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text='Меню')]
 ], resize_keyboard=True)
 
+back_menu = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Назад в меню', callback_data='Меню')]
+])
+
 menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Посмотреть цены', callback_data='view_prices')],
     [InlineKeyboardButton(text='Записаться на услугу', callback_data='book_service')],
@@ -28,7 +32,7 @@ async def masters():
     keyboard = InlineKeyboardBuilder()
     for master in all_masters:
         keyboard.add(InlineKeyboardButton(text=master.name, callback_data=f'master_{master.id}'))
-    keyboard.add(back.inline_keyboard[0][0])
+    keyboard.add(back_menu.inline_keyboard[0][0])
     return keyboard.adjust(1).as_markup()
 
 async def categories():

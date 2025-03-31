@@ -1,6 +1,8 @@
 from sqlalchemy import ForeignKey, String, BigInteger
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine, AsyncSession
+
 
 import os
 from dotenv import load_dotenv
